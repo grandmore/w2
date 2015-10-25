@@ -1,0 +1,62 @@
+build:
+    box: google/golang
+    steps:
+
+    # Test the project
+    - script:
+        name: go test
+        code: go test ./...
+
+    # Statically build the project
+    - script:
+        name: go build
+        code: CGO_ENABLED=0 go build -a -ldflags '-s' -installsuffix cgo -o app .
+
+    # Create cities-controller.json for initialization
+    - script:
+        name: create cities-controller.json
+        code: ./create_cities-controller.json.sh
+
+    # Copy binary to location that gets passed along to deploy
+    - script:
+        name: copy binary
+        code: cp app cities-service.json cities-controller.json "$WERCKER_OUTPUT_DIR"
+
+deploy:
+    box: google/golang
+    steps:
+    # use the scratch step to build a container from scratch based on the files present
+    - internal/docker-scratch-push:
+        username: $QUAY_USERNAME
+        password: $QUAY_PASSWORD
+        cmd: ./app
+        tag: $WERCKER_GIT_COMMIT
+        ports: "5000"
+        repository: quay.io/grandmore/w2
+        registry: https://quay.io
+
+    # Run this to create the rc and service
+    initialize:
+    - kubectl:
+        server: $KUBERNETES_MASTER
+        username: $KUBERNETES_USERNAME
+        password: $KUBERNETES_PASSWORD
+        insecure-skip-tls-verify: true
+        command: create -f cities-controller.json
+
+    - kubectl:
+        server: $KUBERNETES_MASTER
+        username: $KUBERNETES_USERNAME
+        password: $KUBERNETES_PASSWORD
+        insecure-skip-tls-verify: true
+        command: create -f cities-service.json
+
+    # Update the replica controller to $WERCKER_GIT_COMMIT
+    rolling-update:
+    - kubectl:
+        server: $KUBERNETES_MASTER
+        username: $KUBERNETES_USERNAME
+        password: $KUBERNETES_PASSWORD
+        insecure-skip-tls-verify: true
+        command: rolling-update cities
+        image: quay.io/grandmore/w2:$WERCKER_GIT_COMMIT

@@ -1,0 +1,23 @@
+{
+   "kind": "Service",
+   "apiVersion": "v1beta3",
+   "metadata": {
+      "name": "cities",
+      "labels": {
+         "name": "cities"
+      }
+   },
+   "spec":{
+      "createExternalLoadBalancer": true,
+      "ports": [
+         {
+           "port": 5000,
+           "targetPort": "http-server",
+           "protocol": "TCP"
+         }
+      ],
+      "selector":{
+         "name":"cities"
+      }
+   }
+}
