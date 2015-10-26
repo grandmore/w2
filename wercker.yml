@@ -42,7 +42,7 @@ deploy:
         username: $KUBERNETES_USERNAME
         password: $KUBERNETES_PASSWORD
         insecure-skip-tls-verify: true
-        command: delete -f go4live-service.json
+        command: delete -f cities-controller.json
         debug: true
 
     - kubectl:
@@ -50,7 +50,7 @@ deploy:
         username: $KUBERNETES_USERNAME
         password: $KUBERNETES_PASSWORD
         insecure-skip-tls-verify: true
-        command: delete -f go4live_rc.json
+        command: delete -f cities-service.json
         debug: true
 
     # Run this to create the rc and service
