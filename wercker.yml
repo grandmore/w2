@@ -35,6 +35,24 @@ deploy:
         repository: quay.io/grandmore/w2
         registry: https://quay.io
 
+    # Run this to delete the rc and service
+    delete_rc_and_service:
+    - kubectl:
+        server: $KUBERNETES_MASTER
+        username: $KUBERNETES_USERNAME
+        password: $KUBERNETES_PASSWORD
+        insecure-skip-tls-verify: true
+        command: delete -f go4live-service.json
+        debug: true
+
+    - kubectl:
+        server: $KUBERNETES_MASTER
+        username: $KUBERNETES_USERNAME
+        password: $KUBERNETES_PASSWORD
+        insecure-skip-tls-verify: true
+        command: delete -f go4live_rc.json
+        debug: true
+
     # Run this to create the rc and service
     initialize:
     - kubectl:
